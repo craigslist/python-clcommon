@@ -1,0 +1,7 @@
+*.pyc
+*.so
+.coverage*
+build
+coverage.html
+dist
+clcommon.egg-info

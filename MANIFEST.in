@@ -1,0 +1,9 @@
+include .pylintrc
+include coverage.sh
+include LICENSE
+include README.rst
+graft doc
+prune doc/_build/*
+graft test
+include clcommon/favicon.ico
+include clcommon/jquery.js

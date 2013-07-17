@@ -1,0 +1,6 @@
+# Comment
+{
+    # Indented comment (space)
+    "clcommon": {"log": { "syslog_ident": "test" }}
+	# Indented comment (tab)
+}
