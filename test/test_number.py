@@ -80,5 +80,5 @@ class TestNumber(unittest.TestCase):
         uniques = [clcommon.number.unique64() for _count in xrange(100)]
         last = uniques.pop(0)
         while len(uniques) > 0:
-            self.assertGreater(uniques[0], last)
+            self.assertTrue(uniques[0] > last)
             last = uniques.pop(0)
