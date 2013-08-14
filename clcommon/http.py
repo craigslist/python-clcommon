@@ -149,7 +149,7 @@ class Request(object):
             return self._params
         self._params = {}
         params = self.env.get('QUERY_STRING')
-        if params is None:
+        if params is None or params == '':
             return self.params
         for parameter in params.split('&'):
             parameter = parameter.split('=', 1)

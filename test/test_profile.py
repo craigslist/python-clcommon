@@ -61,20 +61,3 @@ class TestProfile(unittest.TestCase):
 
         data_file = StringIO.StringIO('test bad=not_a_float')
         self.assertEquals({}, clcommon.profile.report_data(data_file))
-
-    def test_significant(self):
-        self.assertEquals('100k', clcommon.profile.significant(99960))
-        self.assertEquals('99.9k', clcommon.profile.significant(99930))
-        self.assertEquals('100', clcommon.profile.significant(99.96))
-        self.assertEquals('99.9', clcommon.profile.significant(99.93))
-        self.assertEquals('10', clcommon.profile.significant(9.996))
-        self.assertEquals('9.99', clcommon.profile.significant(9.993))
-        self.assertEquals('1', clcommon.profile.significant(0.9996))
-        self.assertEquals('999m', clcommon.profile.significant(0.9993))
-        self.assertEquals('100m', clcommon.profile.significant(0.09996))
-        self.assertEquals('99.9m', clcommon.profile.significant(0.09993))
-
-        self.assertEquals('0.001', clcommon.profile.significant(0.001, False))
-        self.assertEquals('0.01', clcommon.profile.significant(0.01, False))
-        self.assertEquals('0.1', clcommon.profile.significant(0.1, False))
-        self.assertEquals('1', clcommon.profile.significant(1.0001, False))

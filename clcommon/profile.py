@@ -36,6 +36,7 @@ import time
 
 import clcommon.config
 import clcommon.log
+import clcommon.number
 
 SI_PREFIXES_LARGE = ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
 SI_PREFIXES_SMALL = ['', 'm', 'u', 'n', 'p', 'f', 'a', 'z', 'y']
@@ -97,8 +98,8 @@ class Profile(object):
     def __repr__(self):
         output = []
         for name in sorted(self.marks.iterkeys()):
-            value = self.marks[name]
-            output.append('%s=%s' % (name, significant(value, False)))
+            value = clcommon.number.encode(self.marks[name], False)
+            output.append('%s=%s' % (name, value))
         return ' '.join(output)
 
 
@@ -111,7 +112,7 @@ def report(log):
         for key, value in data[name].iteritems():
             if isinstance(value, list):
                 continue
-            formatted[key] = significant(value)
+            formatted[key] = clcommon.number.encode(value)
         print '%(count)7s %(average)7s %(min)7s %(max)7s %(stddev)7s ' \
             '%(total)7s  %(name)s' % formatted
 
@@ -177,32 +178,6 @@ def _update_report_data(data, name, value):
         data[name]['min'] = value
     if value > data[name]['max']:
         data[name]['max'] = value
-
-
-def significant(value, prefix=True):
-    '''Format value to no more than 3 significant digits.'''
-    if prefix:
-        prefix = 0
-        if value > 1:
-            while value >= 1000:
-                value /= 1000.0
-                prefix += 1
-            prefix = SI_PREFIXES_LARGE[prefix]
-        elif value > 0:
-            while round(value, 3) < 1:
-                value *= 1000.0
-                prefix += 1
-            prefix = SI_PREFIXES_SMALL[prefix]
-        else:
-            prefix = ''
-    else:
-        prefix = ''
-
-    for digit in xrange(3, 0, -1):
-        value = round(value, digit)
-        if value < (10 ** (3 - digit)) and value != round(value, digit - 1):
-            return ('%%.%df%%s' % digit) % (value, prefix)
-    return '%d%s' % (round(value, 0), prefix)
 
 
 def _main():
