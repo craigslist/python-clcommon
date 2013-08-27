@@ -28,6 +28,8 @@ the server object (which creates the listening socket), fork multiple
 children, and call the server start method in each child.'''
 
 import Cookie
+import json
+import mimetypes
 import os
 import socket
 import traceback
@@ -239,6 +241,23 @@ class Request(object):
         if domain is not None:
             cookie[name]['domain'] = path
         self.headers.append(('Set-Cookie', cookie[name].OutputString()))
+
+    def set_content(self, name, body):
+        '''Set content type and length if we can. Also encode the body
+        into a JSON blob if the body is not a string or is readable.'''
+        if hasattr(body, 'read') or isinstance(body, basestring):
+            content_type = mimetypes.guess_type(name)
+            if content_type[0] is None:
+                content_type = 'application/octet-stream'
+            else:
+                content_type = content_type[0]
+            self.headers.append(('Content-type', content_type))
+            if hasattr(body, 'content_length'):
+                self.headers.append(('Content-Length', body.content_length))
+        else:
+            body = json.dumps(body, indent=4, sort_keys=True)
+            self.headers.append(('Content-type', 'application/json'))
+        return body
 
     def respond(self, status, body=None):
         '''Build a response.'''

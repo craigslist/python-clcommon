@@ -14,6 +14,7 @@
 
 '''Tests for craigslist common number module.'''
 
+import time
 import unittest
 
 import clcommon.number
@@ -45,6 +46,8 @@ class TestNumber(unittest.TestCase):
         self.assertEquals('99.9u', clcommon.number.encode(0.00009993))
 
     def test_decode(self):
+        self.assertEquals(1000, clcommon.number.decode(1000))
+        self.assertEquals(1000.0, clcommon.number.decode(1000.0))
         self.assertEquals(1000, clcommon.number.decode('1000'))
         self.assertEquals(1.0001, clcommon.number.decode('1.0001'))
         self.assertEquals(0.1, clcommon.number.decode('0.1'))
@@ -52,6 +55,10 @@ class TestNumber(unittest.TestCase):
         self.assertEquals(0.001, clcommon.number.decode('0.001'))
         self.assertEquals(0.0001, clcommon.number.decode('0.0001'))
         self.assertEquals(0, clcommon.number.decode('0'))
+
+    def test_decode_fail(self):
+        self.assertRaises(ValueError, clcommon.number.decode, {})
+        self.assertRaises(ValueError, clcommon.number.decode, '*0')
 
     def test_decode_si_prefix(self):
         self.assertEquals(100000000, clcommon.number.decode('100M'))
@@ -75,6 +82,15 @@ class TestNumber(unittest.TestCase):
         self.assertEquals(6048000, clcommon.number.decode('10w', True))
         self.assertEquals(315360000, clcommon.number.decode('10y', True))
         self.assertEquals(864000000, clcommon.number.decode('10kd', True))
+
+        now = int(time.time())
+        self.assertAlmostEquals(now + 600,
+            clcommon.number.decode('10m', True, False), -1)
+        self.assertAlmostEquals(now - 36000,
+            clcommon.number.decode('-10h', True, False), -1)
+
+        self.assertEquals(10, clcommon.number.decode('10', True))
+        self.assertEquals(10, clcommon.number.decode('10', True, False))
 
     def test_unique64(self):
         uniques = [clcommon.number.unique64() for _count in xrange(100)]

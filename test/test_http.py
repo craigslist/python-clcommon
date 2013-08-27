@@ -38,6 +38,24 @@ def request(method, url, *args, **kwargs):
     return connection.getresponse()
 
 
+class TestFile(object):
+
+    content_length = 0
+
+    def __iter__(self):
+        return self
+
+    @staticmethod
+    def read(_size=-1):
+        '''Test read method.'''
+        return ''
+
+    @staticmethod
+    def next():
+        '''Test iterator.'''
+        raise StopIteration()
+
+
 class TestRequest(clcommon.http.Request):
 
     def run(self):
@@ -52,6 +70,11 @@ class TestRequest(clcommon.http.Request):
                 [('Content-Type', 'text/html')])
         if self.params.get('error'):
             raise Exception('unknown')
+        if self.params.get('set_content'):
+            body = TestFile()
+            return self.ok(self.set_content(self.params.get('name'), body))
+        if self.params.get('set_content_json'):
+            return self.ok(self.set_content(self.params.get('name'), {}))
         if self.params.get('parse_params'):
             self.parse_params(['str'], ['int'], ['bool'], ['list'])
         if 'test' in self.cookies:
@@ -120,6 +143,23 @@ class TestServer(ServerBase):
             key = part.strip().split('=')[0]
             parts.remove(key.lower())
         self.assertEquals([], parts)
+
+    def test_content(self):
+        response = request('GET', '/?set_content=1&name=test.html')
+        self.assertEquals('0', response.getheader('Content-Length'))
+        self.assertEquals('text/html', response.getheader('Content-Type'))
+        self.assertEquals('', response.read())
+
+        response = request('GET', '/?set_content=1&name=test.unknown')
+        self.assertEquals('0', response.getheader('Content-Length'))
+        self.assertEquals('application/octet-stream',
+            response.getheader('Content-Type'))
+        self.assertEquals('', response.read())
+
+    def test_content_json(self):
+        response = request('GET', '/?set_content_json=1&name=test.json')
+        self.assertEquals('2', response.getheader('Content-Length'))
+        self.assertEquals('{}', response.read())
 
     def test_body(self):
         response = request('PUT', '/', body='test body')
