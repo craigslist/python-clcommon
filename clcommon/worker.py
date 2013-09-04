@@ -27,7 +27,6 @@ combination of real or patched threads (like those used in gevent).'''
 
 import errno
 import Queue
-import select
 import socket
 import sys
 import thread
