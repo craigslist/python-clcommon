@@ -32,6 +32,7 @@ class TestNumber(unittest.TestCase):
         self.assertEquals('0', clcommon.number.encode(0, False))
 
     def test_encode_si_prefix(self):
+        self.assertEquals('1000000Y', clcommon.number.encode(1e+30))
         self.assertEquals('100M', clcommon.number.encode(99960000))
         self.assertEquals('100k', clcommon.number.encode(99960))
         self.assertEquals('99.9k', clcommon.number.encode(99930))
@@ -44,6 +45,7 @@ class TestNumber(unittest.TestCase):
         self.assertEquals('100m', clcommon.number.encode(0.09996))
         self.assertEquals('99.9m', clcommon.number.encode(0.09993))
         self.assertEquals('99.9u', clcommon.number.encode(0.00009993))
+        self.assertEquals('0', clcommon.number.encode(1e-30))
 
     def test_decode(self):
         self.assertEquals(1000, clcommon.number.decode(1000))

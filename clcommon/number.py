@@ -44,12 +44,13 @@ def encode(value, si_prefix=True, digits=3, factor=1000):
         si_prefix = 0
         if value > 1:
             factor = float(factor)
-            while value >= factor:
+            while value >= factor and si_prefix < (len(SI_PREFIX_LARGE) - 1):
                 value /= factor
                 si_prefix += 1
             si_prefix = SI_PREFIX_LARGE[si_prefix]
         elif value > 0:
-            while round(value, digits) < 1:
+            while round(value, digits) < 1 and \
+                    si_prefix < (len(SI_PREFIX_LARGE) - 1):
                 value *= factor
                 si_prefix += 1
             si_prefix = SI_PREFIX_SMALL[si_prefix]
@@ -63,7 +64,10 @@ def encode(value, si_prefix=True, digits=3, factor=1000):
         if value < (10 ** (digits - digit)) and \
                 value != round(value, digit - 1):
             return ('%%.%df%%s' % digit) % (value, si_prefix)
-    return '%d%s' % (round(value, 0), si_prefix)
+    value = round(value, 0)
+    if value == 0:
+        return '0'
+    return '%d%s' % (value, si_prefix)
 
 
 def decode(value, time_value=False, relative_time=True, factor=1000):

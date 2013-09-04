@@ -32,9 +32,9 @@ import socket
 import sys
 import thread
 
-_UNPATCHED_SELECT = select.select
 _UNPATCHED_SOCKETPAIR = socket.socketpair
 _UNPATCHED_START_NEW_THREAD = thread.start_new_thread
+_UNPATCHED_ALLOCATE_LOCK = thread.allocate_lock
 _UNPATCHED_GET_IDENT = thread.get_ident
 _PATCHED_THREAD = _UNPATCHED_GET_IDENT()
 Empty = Queue.Empty  # pylint: disable=C0103
@@ -44,18 +44,19 @@ class HybridQueue(object):
     '''Queue object that can work both with and without monkey patching.'''
 
     def __init__(self):
+        self._send, self._recv = _UNPATCHED_SOCKETPAIR()
         # Assume monkey patching if socket.socketpair is different.
         self._patched = socket.socketpair != _UNPATCHED_SOCKETPAIR
-        pair = _UNPATCHED_SOCKETPAIR()
-        self._send = pair[0]
-        self._recv = pair[1]
         if self._patched:
-            self._send_lock = thread.allocate_lock()
-            self._send_patched = socket.fromfd(pair[0].fileno(),
-                pair[0].family, pair[0].type)
-            self._recv_lock = thread.allocate_lock()
-            self._recv_patched = socket.fromfd(pair[1].fileno(),
-                pair[1].family, pair[1].type)
+            self._send_patched_lock = thread.allocate_lock()
+            self._send_patched = socket.fromfd(self._send.fileno(),
+                self._send.family, self._send.type)
+            self._send_patched.settimeout(None)
+            self._recv_patched_lock = thread.allocate_lock()
+            self._recv_patched = socket.fromfd(self._recv.fileno(),
+                self._recv.family, self._recv.type)
+        self._send.settimeout(None)
+        self._recv_lock = _UNPATCHED_ALLOCATE_LOCK()
         self._items = []
 
     def qsize(self):
@@ -64,18 +65,8 @@ class HybridQueue(object):
 
     def get(self, timeout=None):
         '''Get an item from the queue, blocking if needed.'''
-        while True:
-            if timeout != 0:
-                try:
-                    self._recv_byte(timeout)
-                except socket.timeout:
-                    raise Empty()
-            try:
-                return self._items.pop(0)
-            except IndexError:
-                if timeout == 0:
-                    raise Empty()
-                continue
+        self._recv_byte(timeout)
+        return self._items.pop(0)
 
     def put(self, item):
         '''Put an item in the queue.'''
@@ -84,31 +75,31 @@ class HybridQueue(object):
 
     def _recv_byte(self, timeout):
         '''Wait until we get a byte on the socket pair, blocking if needed.'''
-        if self._patched and _PATCHED_THREAD == _UNPATCHED_GET_IDENT():
-            with self._recv_lock:
-                self._recv_patched.settimeout(timeout)
-                return self._recv_patched.recv(1)
-        while True:
+        patched = self._patched and _PATCHED_THREAD == _UNPATCHED_GET_IDENT()
+        if patched:
+            lock = self._recv_patched_lock
+            recv = self._recv_patched
+        else:
+            lock = self._recv_lock
+            recv = self._recv
+        with lock:
             try:
-                self._recv.settimeout(timeout)
-                return self._recv.recv(1)
+                recv.settimeout(timeout)
+                return recv.recv(1)
+            except socket.timeout:
+                raise Empty()
             except socket.error, exception:
                 if exception.errno != errno.EAGAIN:
                     raise
-                _UNPATCHED_SELECT([self._recv.fileno()], [], [], timeout)
+                if timeout == 0:
+                    raise Empty()
 
     def _send_byte(self):
         '''Send a byte to the blocking pair.'''
         if self._patched and _PATCHED_THREAD == _UNPATCHED_GET_IDENT():
-            with self._send_lock:
-                return self._send_patched.send('.')
-        while True:
-            try:
-                return self._send.send('.')
-            except socket.error, exception:
-                if exception.errno != errno.EAGAIN:
-                    raise
-                _UNPATCHED_SELECT([], [self._send.fileno()], [])
+            with self._send_patched_lock:
+                return self._send_patched.sendall('.')
+        return self._send.sendall('.')
 
 
 class Pool(object):
