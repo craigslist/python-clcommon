@@ -46,6 +46,7 @@ class TestNumber(unittest.TestCase):
         self.assertEquals('99.9m', clcommon.number.encode(0.09993))
         self.assertEquals('99.9u', clcommon.number.encode(0.00009993))
         self.assertEquals('0', clcommon.number.encode(1e-30))
+        self.assertEquals('0.000001y', clcommon.number.encode(1e-30, digits=6))
 
     def test_decode(self):
         self.assertEquals(1000, clcommon.number.decode(1000))
