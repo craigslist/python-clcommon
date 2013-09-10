@@ -28,6 +28,7 @@ the server object (which creates the listening socket), fork multiple
 children, and call the server start method in each child.'''
 
 import Cookie
+import errno
 import json
 import mimetypes
 import os
@@ -85,6 +86,16 @@ class Server(object):
             def log_error(self, msg, *args):
                 '''Log an error.'''
                 server_log.warning(msg, *args)
+
+            def run_application(self):
+                '''Wrapper for parent method to suppress some common error
+                conditions that can safely be ignored because they make
+                for noisy logs.'''
+                try:
+                    super(WSGIHandler, self).run_application()
+                except IOError, exception:
+                    if exception.errno not in [errno.EPIPE, errno.ECONNRESET]:
+                        raise
 
         self._socket = socket.fromfd(self._socket.fileno(),
             self._socket.family, self._socket.type, self._socket.proto)
