@@ -38,6 +38,7 @@ DEFAULT_CONFIG = {
             'format': ' %(process)d %(levelname)s %(name)s %(message)s',
             'level': 'WARNING',
             'syslog_ident': None,
+            'syslog_address': '/dev/log',
             'syslog_stdio': True}}}
 
 
@@ -50,7 +51,10 @@ def setup(config):
     logger.setLevel(level)
 
     if config['syslog_ident'] is not None:
-        handler = _SysLogHandler(address='/dev/log')
+        address = config['syslog_address']
+        if isinstance(address, list):
+            address = tuple(address)
+        handler = _SysLogHandler(address=address)
         format_string = str(config['syslog_ident'] + config['format'])
         handler.setFormatter(logging.Formatter(format_string))
         handler.setLevel(level)

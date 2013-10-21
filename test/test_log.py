@@ -29,6 +29,7 @@ class TestLog(unittest.TestCase):
                 'log': {
                     'console': True,
                     'level': 'ERROR',
+                    'syslog_address': ['localhost', 514],
                     'syslog_ident': 'test'}}})
         clcommon.log.setup(config)
         self.assertEquals(logging.ERROR, logging.getLogger().level)
