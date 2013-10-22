@@ -53,6 +53,8 @@ def setup(config):
     if config['syslog_ident'] is not None:
         address = config['syslog_address']
         if isinstance(address, list):
+            if address[0] is None:
+                address[0] = socket.gethostname().split('.')[0]
             address = tuple(address)
         handler = _SysLogHandler(address=address)
         format_string = str(config['syslog_ident'] + config['format'])
