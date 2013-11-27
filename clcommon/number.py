@@ -26,7 +26,7 @@ SI_PREFIX_MULTIPLIER = dict((prefix, index)
     for index, prefix in enumerate(SI_PREFIX_LARGE))
 SI_PREFIX_MULTIPLIER.update(dict((prefix, -index)
     for index, prefix in enumerate(SI_PREFIX_SMALL)))
-SI_PREFIX_REGEX = re.compile('^(-?[0-9]+)(\.[0-9]*)?([%s])?$' %
+SI_PREFIX_REGEX = re.compile('^(-)?([0-9]+)(\.[0-9]+)?([%s])?$' %
     ''.join(SI_PREFIX_LARGE + SI_PREFIX_SMALL))
 TIME_ABBREVIATIONS = {
     's': 1,
@@ -70,7 +70,7 @@ def encode(value, si_prefix=True, digits=3, factor=1000):
     return '%d%s' % (value, si_prefix)
 
 
-def decode(value, time_value=False, relative_time=True, factor=1000):
+def decode(value, time_value=False, relative_time=True, factor=1000, now=None):
     '''Decode a SI prefix encoded value.'''
     if isinstance(value, (int, float)):
         return value
@@ -85,14 +85,20 @@ def decode(value, time_value=False, relative_time=True, factor=1000):
     match = SI_PREFIX_REGEX.match(value)
     if match is None:
         raise ValueError(_('Cannot decode value: %s') % value)
+    if match.group(4) is not None:
+        multiplier *= factor ** SI_PREFIX_MULTIPLIER[match.group(4)]
+    value = int(match.group(2))
     if match.group(3) is not None:
-        multiplier *= factor ** SI_PREFIX_MULTIPLIER[match.group(3)]
-    value = int(match.group(1))
-    if match.group(2) is not None:
-        value += float(match.group(2))
+        value += float(match.group(3))
+    if match.group(1) is not None:
+        value = -value
     value = value * multiplier
     if time_value and not relative_time:
-        value = int(time.time()) + value
+        now = now or time.time()
+        if isinstance(value, int):
+            value = int(now) + value
+        else:
+            value = now + value
     return value
 
 

@@ -54,6 +54,7 @@ class TestNumber(unittest.TestCase):
         self.assertEquals(1000, clcommon.number.decode('1000'))
         self.assertEquals(1.0001, clcommon.number.decode('1.0001'))
         self.assertEquals(0.1, clcommon.number.decode('0.1'))
+        self.assertEquals(-0.1, clcommon.number.decode('-0.1'))
         self.assertEquals(0.01, clcommon.number.decode('0.01'))
         self.assertEquals(0.001, clcommon.number.decode('0.001'))
         self.assertEquals(0.0001, clcommon.number.decode('0.0001'))
@@ -91,6 +92,10 @@ class TestNumber(unittest.TestCase):
             clcommon.number.decode('10m', True, False), -1)
         self.assertAlmostEquals(now - 36000,
             clcommon.number.decode('-10h', True, False), -1)
+        self.assertEquals(now - 36000,
+            clcommon.number.decode('-10h', True, False, now=now))
+        self.assertEquals(now - 37800.0,
+            clcommon.number.decode('-10.5h', True, False, now=now))
 
         self.assertEquals(10, clcommon.number.decode('10', True))
         self.assertEquals(10, clcommon.number.decode('10', True, False))
