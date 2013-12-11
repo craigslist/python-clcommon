@@ -106,3 +106,6 @@ class TestNumber(unittest.TestCase):
         while len(uniques) > 0:
             self.assertTrue(uniques[0] > last)
             last = uniques.pop(0)
+        self.assertEquals(123, clcommon.number.unique64(123) >> 32)
+        self.assertEquals((123 << 20) + 450000,
+            clcommon.number.unique64(123.45) >> 12)

@@ -102,9 +102,12 @@ def decode(value, time_value=False, relative_time=True, factor=1000, now=None):
     return value
 
 
-def unique64():
+def unique64(now=None):
     '''Generate a unique time-based 64 bit integer ID.'''
-    now = time.time()
+    if now is None:
+        now = time.time()
+    elif isinstance(now, int):
+        now += time.time() % 1
     seconds = int(now)
     micros = int((now - seconds) * 1000000)
     return (seconds << 32) + (micros << 12) + random.randrange(4096)
