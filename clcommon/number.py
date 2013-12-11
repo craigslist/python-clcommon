@@ -109,5 +109,5 @@ def unique64(now=None):
     elif isinstance(now, int):
         now += time.time() % 1
     seconds = int(now)
-    micros = int((now - seconds) * 1000000)
+    micros = int((now % 1) * 1000000)
     return (seconds << 32) + (micros << 12) + random.randrange(4096)
