@@ -26,7 +26,7 @@ SI_PREFIX_MULTIPLIER = dict((prefix, index)
     for index, prefix in enumerate(SI_PREFIX_LARGE))
 SI_PREFIX_MULTIPLIER.update(dict((prefix, -index)
     for index, prefix in enumerate(SI_PREFIX_SMALL)))
-SI_PREFIX_REGEX = re.compile('^(-)?([0-9]+)(\.[0-9]+)?([%s])?$' %
+SI_PREFIX_REGEX = re.compile('^([+-])?([0-9]+)(\.[0-9]+)?([%s])?$' %
     ''.join(SI_PREFIX_LARGE + SI_PREFIX_SMALL))
 TIME_ABBREVIATIONS = {
     's': 1,
@@ -90,15 +90,17 @@ def decode(value, time_value=False, relative_time=True, factor=1000, now=None):
     value = int(match.group(2))
     if match.group(3) is not None:
         value += float(match.group(3))
-    if match.group(1) is not None:
-        value = -value
     value = value * multiplier
     if time_value and not relative_time:
         now = now or time.time()
+        if match.group(1) != '+':
+            value = -value
         if isinstance(value, int):
             value = int(now) + value
         else:
             value = now + value
+    elif match.group(1) == '-':
+        value = -value
     return value
 
 

@@ -89,7 +89,9 @@ class TestNumber(unittest.TestCase):
 
         now = int(time.time())
         self.assertAlmostEquals(now + 600,
-            clcommon.number.decode('10m', True, False), -1)
+            clcommon.number.decode('+10m', True, False), -1)
+        self.assertAlmostEquals(now - 36000,
+            clcommon.number.decode('10h', True, False), -1)
         self.assertAlmostEquals(now - 36000,
             clcommon.number.decode('-10h', True, False), -1)
         self.assertEquals(now - 36000,
