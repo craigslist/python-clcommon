@@ -104,10 +104,8 @@ class TestNumber(unittest.TestCase):
 
     def test_unique64(self):
         uniques = [clcommon.number.unique64() for _count in xrange(100)]
-        last = uniques.pop(0)
-        while len(uniques) > 0:
-            self.assertTrue(uniques[0] > last)
-            last = uniques.pop(0)
+        for unique in uniques:
+            self.assertEquals(1, uniques.count(unique))
         self.assertEquals(123, clcommon.number.unique64(123) >> 32)
         self.assertEquals((123 << 20) + 450000,
             clcommon.number.unique64(123.45) >> 12)

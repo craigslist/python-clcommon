@@ -64,13 +64,22 @@ class HybridQueue(object):
 
     def get(self, timeout=None):
         '''Get an item from the queue, blocking if needed.'''
-        self._recv_byte(timeout)
-        return self._items.pop(0)
+        while True:
+            self._recv_byte(timeout)
+            try:
+                item = self._items.pop(0)
+                if len(self._items) > 0:
+                    self._send_byte()
+                return item
+            except IndexError:
+                continue
 
     def put(self, item):
         '''Put an item in the queue.'''
+        empty = len(self._items) == 0
         self._items.append(item)
-        self._send_byte()
+        if empty:
+            self._send_byte()
 
     def _recv_byte(self, timeout):
         '''Wait until we get a byte on the socket pair, blocking if needed.'''
