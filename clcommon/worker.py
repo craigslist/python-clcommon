@@ -57,6 +57,7 @@ class HybridQueue(object):
         self._send.settimeout(None)
         self._recv_lock = _UNPATCHED_ALLOCATE_LOCK()
         self._items = []
+        self._write_byte = True
 
     def qsize(self):
         '''Get the number of items in the queue.'''
@@ -66,6 +67,7 @@ class HybridQueue(object):
         '''Get an item from the queue, blocking if needed.'''
         while True:
             self._recv_byte(timeout)
+            self._write_byte = True
             try:
                 item = self._items.pop(0)
                 if len(self._items) > 0:
@@ -76,9 +78,9 @@ class HybridQueue(object):
 
     def put(self, item):
         '''Put an item in the queue.'''
-        empty = len(self._items) == 0
         self._items.append(item)
-        if empty:
+        if self._write_byte:
+            self._write_byte = False
             self._send_byte()
 
     def _recv_byte(self, timeout):
