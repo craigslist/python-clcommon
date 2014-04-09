@@ -138,6 +138,25 @@ class TestPoolOne(TestPool):
         self.assertRaises(Exception, job.wait)
         pool.stop()
 
+    def test_group_size(self):
+        operations = []
+        pool = clcommon.worker.Pool(1, self.patched)
+        pool.set_group_begin(operations.append, 'begin')
+        pool.set_group_end(operations.append, 'end')
+        pool.set_group_size(3)
+        wait_queue = clcommon.worker.HybridQueue()
+        batch = pool.batch()
+        batch.start(wait_queue.get)
+        batch.start(operations.append, 'run')
+        batch.start(operations.append, 'run')
+        batch.start(operations.append, 'run')
+        wait_queue.put('go')
+        batch.wait_all()
+        time.sleep(0.1)
+        self.assertEquals(operations,
+            ['begin', 'run', 'run', 'end', 'begin', 'run', 'end'])
+        pool.stop()
+
 
 class TestPoolPatchedOne(TestPoolOne):
 

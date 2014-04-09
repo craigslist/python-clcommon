@@ -127,6 +127,7 @@ class Pool(object):
         self._size = size
         self._group_begin = None
         self._group_end = None
+        self._group_size = None
         self._stopped = False
         if size > 0:
             self._queue = HybridQueue()
@@ -149,6 +150,10 @@ class Pool(object):
             self._group_end = None
         else:
             self._group_end = _Job(function, args, kwargs)
+
+    def set_group_size(self, size):
+        '''Set the maximum number of jobs that should run for a group.'''
+        self._group_size = size
 
     def stop(self):
         '''Stop the pool by stopping all threads running for it.'''
@@ -235,12 +240,16 @@ class Pool(object):
                 break
             if self._check_group_result(self._group_begin, job):
                 continue
+            group_count = 0
             while job is not None:
                 job.run()
                 if self._group_end is None:
                     job.finish()
                 else:
                     jobs.append(job)
+                group_count += 1
+                if self._group_size == group_count:
+                    break
                 try:
                     job = self._queue.get(0)
                 except Empty:

@@ -266,7 +266,7 @@ class Request(object):
             if hasattr(body, 'content_length'):
                 self.headers.append(('Content-Length', body.content_length))
         else:
-            body = json.dumps(body, indent=4, sort_keys=True)
+            body = json.dumps(body, separators=(',', ':'))
             self.headers.append(('Content-type', 'application/json'))
         return body
 
