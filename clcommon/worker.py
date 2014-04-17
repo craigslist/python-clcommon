@@ -95,7 +95,7 @@ class HybridQueue(object):
         with lock:
             try:
                 recv.settimeout(timeout)
-                return recv.recv(1)
+                return recv.recv(1024)
             except socket.timeout:
                 raise Empty()
             except socket.error, exception:
