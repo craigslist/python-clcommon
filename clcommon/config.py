@@ -54,8 +54,8 @@ import sys
 
 import clcommon
 
-VALID_JSON_BYTES = dict((str(byte), None)
-    for byte in range(10) + ['-', '[', '{', '"'])
+VALID_JSON_BYTES = dict((str(byte), None) for byte in ['[', '{', '"'])
+VALID_JSON_NUMBERS = dict((str(byte), None) for byte in range(10) + ['-'])
 VALID_JSON_WORDS = dict((word, None) for word in ['true', 'false', 'null'])
 
 
@@ -149,6 +149,11 @@ def parse_value(value):
         value = sys.stdin.read()
     if value == '':
         return value
+    if value[0] in VALID_JSON_NUMBERS:
+        try:
+            return json.loads(value)
+        except Exception:
+            return value
     if value[0] in VALID_JSON_BYTES or value in VALID_JSON_WORDS:
         return json.loads(value)
     return value

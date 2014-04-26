@@ -71,6 +71,7 @@ class TestConfig(unittest.TestCase):
             clcommon.config.parse_value('{"test": false}'))
         self.assertEquals('test string',
             clcommon.config.parse_value('test string'))
+        self.assertEquals('10.0.0.1', clcommon.config.parse_value('10.0.0.1'))
         self.assertEquals(5, clcommon.config.parse_value('5'))
         self.assertEquals(-1.2, clcommon.config.parse_value('-1.2'))
         self.assertEquals(True, clcommon.config.parse_value('true'))
@@ -94,7 +95,7 @@ class TestConfig(unittest.TestCase):
 
     def test_bad_option(self):
         self.assertRaises(SystemExit, clcommon.config.load, dict(a=1),
-            args=['--a=00'])
+            args=['--a={'])
 
     def test_update(self):
         original = dict(a=0, b=0)
